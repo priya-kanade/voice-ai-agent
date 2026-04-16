@@ -8,43 +8,46 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def process_text(text):
     prompt = f"""
-You are an AI agent.
+You are an AI agent that converts user commands into structured JSON.
 
-Extract:
-1. intent (create_file, write_code, summarize, chat)
-2. filename (if user wants to save output)
-3. code (if needed)
-4. save (true/false → whether user wants to save output)
+IMPORTANT RULES:
+- Always return valid JSON only
+- Do NOT return explanations
+- Do NOT return markdown
+- Generate REAL working code when asked
 
-Rules:
-- "Summarize this and save to summary.txt" →
-  intent = summarize
-  filename = summary.txt
-  save = true
+INTENTS:
+1. create_file → when user wants to create a file
+2. write_code → when user asks for code
+3. summarize → when user asks explanation
+4. chat → normal conversation
 
-- "Write python code and save to test.py" →
-  intent = write_code
-  filename = test.py
-  save = true
+RULES FOR write_code:
+- ALWAYS generate FULL working code
+- NEVER return just "cpp" or "python"
+- If language is CPP → generate complete C++ program
+- If filename not provided → generate default filename
 
-- If no save instruction → save = false
+DEFAULT FILENAMES:
+- cpp → code.cpp
+- python → code.py
 
-Return ONLY JSON:
-
+OUTPUT FORMAT:
 {{
   "intent": "...",
   "filename": "...",
   "code": "...",
-  "save": true/false
+  "save": true
 }}
 
-Text: {text}
+USER INPUT:
+{text}
 """
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0
+        temperature=0.2
     )
 
-    return response.choices[0].message.content.strip()
+    return response.choices[0].message.content

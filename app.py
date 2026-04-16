@@ -7,30 +7,45 @@ from pydub import AudioSegment
 from audiorecorder import audiorecorder
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Voice AI Agent", layout="centered")
-
-# ---------------- SIMPLE CLEAN UI FIX ----------------
 st.markdown("""
 <style>
 
-/* Background */
+/* App background */
 .stApp {
     background-color: #ffffff;
     color: #111827;
 }
 
-/* Fix text visibility */
+/* Fix normal text */
 body, p, label, span {
     color: #111827 !important;
 }
 
-/* Fix radio visibility */
+/* ✅ FIX CODE BLOCK */
+code, pre, .stCodeBlock {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+    border-radius: 8px;
+}
+
+/* ✅ Fix code inside block */
+pre code {
+    color: #111827 !important;
+}
+
+/* ✅ FIX file path box */
+div[data-testid="stCode"] {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+}
+
+/* Radio */
 div[role="radiogroup"] label {
     color: #111827 !important;
     font-weight: 600;
 }
 
-/* Fix uploader */
+/* Uploader */
 section[data-testid="stFileUploader"] {
     background-color: #f3f4f6 !important;
     border: 1px solid #d1d5db !important;
@@ -58,7 +73,6 @@ h2, h3 {
 
 </style>
 """, unsafe_allow_html=True)
-
 # ---------------- HEADER ----------------
 st.markdown("<h1>🎤 Voice AI Agent</h1>", unsafe_allow_html=True)
 
@@ -132,7 +146,7 @@ if audio_path:
 
         temp_intent, temp_result = run_agent(text)
 
-        # Human-in-the-loop
+        # ---------------- HUMAN-IN-THE-LOOP ----------------
         if temp_intent in ["create_file", "write_code"]:
             st.warning(f"Action detected: {temp_intent}")
 
@@ -161,18 +175,30 @@ if audio_path:
         st.write("**Intent:**", intent)
         st.write("**Action:**", result.get("message", ""))
 
+        # File path
         if result.get("file_path"):
             st.write("**File Location:**")
             st.code(result["file_path"])
 
+        # ✅ FIXED OUTPUT DISPLAY
         if result.get("content"):
             st.write("**Output:**")
-            if intent == "write_code":
-                st.code(result["content"], language="python")
-            else:
-                st.write(result["content"])
 
-        # Store history
+            content = result["content"]
+
+            if intent == "write_code":
+                file_path = result.get("file_path", "")
+
+                if file_path.endswith(".cpp"):
+                    st.code(content, language="cpp")
+                elif file_path.endswith(".py"):
+                    st.code(content, language="python")
+                else:
+                    st.code(content)
+            else:
+                st.write(content)
+
+        # ---------------- MEMORY STORE ----------------
         st.session_state.history.append({
             "text": text,
             "intent": intent,

@@ -82,15 +82,32 @@ def run_agent(text):
         return intent, create_file(filename)
 
     # ✅ WRITE CODE
+# ✅ WRITE CODE
     elif intent == "write_code":
-        if not code.strip() or "code for" in code.lower():
+
+    # 🔥 STRONG VALIDATION (fixes your issue)
+        invalid_code_outputs = ["cpp", "python", "code", "c++"]
+
+        if (
+            not code
+            or code.strip().lower() in invalid_code_outputs
+            or len(code.strip()) < 20
+       ):
             code = chat_response(
-                f"Write complete working code for: {text}. Only output code."
+                f"Write complete working {text}. Only output code. No explanation."
             )
 
+    # 🔥 Ensure filename
+        if not filename:
+            if "cpp" in text.lower() or "c++" in text.lower():
+                filename = "code.cpp"
+            elif "python" in text.lower():
+                filename = "code.py"
+            else:
+                filename = "code.txt"
+    
         result = write_code(filename, code)
         return intent, result
-
     # ✅ SUMMARIZE (WITH COMPOUND SUPPORT)
     elif intent == "summarize":
 
